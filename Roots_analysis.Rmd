@@ -471,70 +471,62 @@ columns_el <- result_df %>%
   select(1:3, 4:12)
 ```
 
-```{r, eval=FALSE, message=FALSE, warning=FALSE}
-# Rearrange the factor levels.
-columns_el$treatment <- as.factor(columns_el$treatment)
-columns_el$inoculum <- as.factor(columns_el$inoculum)
+```{r}
+library(ggplot2)
+library(gridExtra)
 
-# This is the plot from which I extract the legend.
-leg <- ggplot(columns_el, aes(x = inoculum, y = length, fill = treatment)) +
-  geom_boxplot() +
-  labs(x = "", y = "Length (cm)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10)) +
-  guides(fill = guide_legend(ncol = 3, title = "Inoculum"))
-# +
-  # scale_fill_discrete(labels=c("NI", "PC"))
+# Rearrange factor levels
+columns_el$treatment <- factor(columns_el$treatment)
+columns_el$inoculum <- factor(columns_el$inoculum, levels = c("NI", "PC"))
 
-# Extract the legend from one of the graphs.
-legend <- cowplot::get_legend(leg)
+# Funzione per generare i boxplot
+generate_boxplot <- function(data, y_var, y_label) {
+  ggplot(data, aes(x = treatment, y = .data[[y_var]], fill = inoculum)) +
+    geom_boxplot() +
+    scale_fill_manual(values = c("NI" = "skyblue", "PC" = "lightcoral")) +  # Add this line
+    labs(x = "Treatment", y = y_label) +  
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+          legend.position = "right", 
+          legend.direction = "horizontal",
+          legend.title	= element_blank())
+}
 
-# Create boxplots for each variable without the legend
-plot1 <- ggplot(columns_el, aes(x = inoculum, y = length, fill = treatment)) +
-  geom_boxplot(show.legend = FALSE) +
-  labs(x = "", y = "Total Length (cm)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
+# Funzione per rimuovere la legenda da ciascun grafico
+remove_legend <- function(p) {
+  p + theme(legend.position = "none")
+}
 
-plot2 <- ggplot(columns_el, aes(x = inoculum, y = rootVolume, fill = treatment)) +
-  geom_boxplot(show.legend = FALSE) +
-  labs(x = "", y = "Total Roots Volume(cm3)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
+# Genera i boxplot
+plot1 <- generate_boxplot(columns_el, "length", "Total Length (cm)")
+plot2 <- generate_boxplot(columns_el, "rootVolume", "Total Roots Volume (cm3)")
+plot3 <- generate_boxplot(columns_el, "FRL", "Fine Roots Length (cm)")
+plot4 <- generate_boxplot(columns_el, "FRS", "Fine Roots Surface (cm2)")
+plot5 <- generate_boxplot(columns_el, "FVOL", "Fine Root Volume (cm3)")
 
-plot3 <- ggplot(columns_el, aes(x = inoculum, y = FRL, fill = treatment)) +
-  geom_boxplot(show.legend = FALSE) +
-  labs(x = "", y = "Fine Roots Length (cm)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
+# Estrai la legenda da uno dei grafici
+legend <- get_legend(plot5)
 
-plot4 <- ggplot(columns_el, aes(x = inoculum, y = FRS, fill = treatment)) +
-  geom_boxplot(show.legend = FALSE) +
-  labs(x = "Treatments", y = "Fine Roots Surface (cm2)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
+# # Rimuove la legenda da ciascun grafico
+plot1 <- remove_legend(plot1)
+plot2 <- remove_legend(plot2)
+plot3 <- remove_legend(plot3)
+plot4 <- remove_legend(plot4)
+plot5 <- remove_legend(plot5)
 
-plot5 <- ggplot(columns_el, aes(x = inoculum, y = FVOL, fill = treatment)) +
-  geom_boxplot(show.legend = FALSE) +
-  labs(x = "Treatments", y = "Fine Root Volume (cm3)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
+# Crea una griglia con i grafici e la legenda in basso
+grid1 <- grid.arrange(
+  arrangeGrob(plot1, plot2, plot3, plot4, plot5, ncol = 2),
+  legend,
+  nrow = 2,
+  heights = c(10, 1)  # Modifica questi numeri per cambiare l'altezza relativa dei grafici e della legenda
+)
 
-# plot6 <- ggplot(columns_el, aes(x = treatment, y = weight, fill = inoculum)) +
-  # geom_boxplot(show.legend = FALSE) +
-  # labs(x = "Treatments", y = "Fine Root weigth (g)") +
-  # theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10))
-
-# Remove legend from individual graphs.
-plot1 <- plot1 + theme(legend.position = "none")
-plot2 <- plot2 + theme(legend.position = "none")
-plot3 <- plot3 + theme(legend.position = "none")
-plot4 <- plot4 + theme(legend.position = "none")
-plot5 <- plot5 + theme(legend.position = "none")
-# plot6 <- plot6 + theme(legend.position = "none")
-
-# Create a grid with graphs and legend at the bottom.
-grid1 <- grid.arrange(plot1, plot2, plot3, plot4, plot5, ncol = 2, bottom = legend)
-
-# Specifies the path to save
+# Specifica il percorso per salvare
 file_path <- "./GRAPHS/box_plots.png"
 
-# Save the grid as a PNG file.
+# Salva la griglia come file PNG
 ggsave(file_path, grid1, width = 16, height = 12, dpi = 700)
+
 ```
 
 ![Box plot of the roots parameters for each treatment and inoculum](GRAPHS/box_plots.png)
@@ -658,6 +650,7 @@ p1 <- ggplot(df_summary, aes(x=treatment, y= length_mean, fill=inoculum)) +
   labs(x="Treatment", y=paste("Length (cm)")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10)) +
   theme_minimal() +
+  scale_fill_manual(values = colori) + 
   guides(fill = guide_legend(ncol = 3, title = "Inoculum"))
 
 p2 <- ggplot(df_summary, aes(x=treatment, y= avgDiam_mean, fill=inoculum)) +
@@ -667,6 +660,7 @@ p2 <- ggplot(df_summary, aes(x=treatment, y= avgDiam_mean, fill=inoculum)) +
   labs(x="Treatment", y=paste("AvgDiam(mm)")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10)) +
   theme_minimal() +
+  scale_fill_manual(values = colori) + 
   guides(fill = guide_legend(ncol = 3, title = "Inoculum"))
 
 p3 <- ggplot(df_summary, aes(x=treatment, y= rootVolume_mean, fill=inoculum)) +
@@ -676,6 +670,7 @@ p3 <- ggplot(df_summary, aes(x=treatment, y= rootVolume_mean, fill=inoculum)) +
   labs(x="Treatment", y=paste("Total Roots Volume(cm3)")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10)) +
   theme_minimal() +
+  scale_fill_manual(values = colori) + 
   guides(fill = guide_legend(ncol = 3, title = "Inoculum"))
 
 p4 <- ggplot(df_summary, aes(x=treatment, y= FRL_mean, fill=inoculum)) +
@@ -685,6 +680,7 @@ p4 <- ggplot(df_summary, aes(x=treatment, y= FRL_mean, fill=inoculum)) +
   labs(x="Treatment", y=paste("Fine Roots Length (cm)")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10)) +
   theme_minimal() +
+  scale_fill_manual(values = colori) + 
   guides(fill = guide_legend(ncol = 3, title = "Inoculum"))
 
 p5 <- ggplot(df_summary, aes(x=treatment, y= FRS_mean, fill=inoculum)) +
@@ -694,6 +690,7 @@ p5 <- ggplot(df_summary, aes(x=treatment, y= FRS_mean, fill=inoculum)) +
   labs(x="Treatment", y=paste("Fine Roots Surface (cm2)")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10)) +
   theme_minimal() +
+  scale_fill_manual(values = colori) + 
   guides(fill = guide_legend(ncol = 3, title = "Inoculum"))
 
 p6 <- ggplot(df_summary, aes(x=treatment, y= FVOL_mean, fill=inoculum)) +
@@ -703,6 +700,7 @@ p6 <- ggplot(df_summary, aes(x=treatment, y= FVOL_mean, fill=inoculum)) +
   labs(x="Treatment", y=paste("Fine Roots Volume")) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10)) +
   theme_minimal() +
+  scale_fill_manual(values = colori) + 
   guides(fill = guide_legend(ncol = 3, title = "Inoculum"))
 
 # Extract the legend from one of the graphs
