@@ -10,7 +10,7 @@ library(xml2); library(dplyr); library(tidyr); library(ggplot2);
 # Load the dataframes
 fluo_0 <- readxl::read_excel("./FLUO_SPAD/Fluometer_quercus_seconda_prova.xlsx")
 
-fluo_0 <- na.omit(fluo_0)
+fluo_0$Date <- as.Date(fluo_0$Date, format = "%d-%m-%Y")
 
 # View the dataframes structure
 str(fluo_0) # Devo delezionare solo ID_plant, Date  e Fv/Fm
@@ -30,8 +30,11 @@ fluo_plot <- ggplot(fluo_summary, aes(x = Date, y = mean_FvFm, group = interacti
   geom_point() +
   geom_errorbar(aes(ymin = mean_FvFm - sd_FvFm, ymax = mean_FvFm + sd_FvFm), width = 0.2) + 
   labs(x = "Date", y = "Mean Fv/Fm", color = "Inoculum & Treatment", title = "Mean Fv/Fm over Time with Standard Deviation") +
-  theme_bw() +
-  theme(legend.position = "bottom")
+  theme_minimal() +  
+  theme(legend.position = "bottom") +
+  scale_x_date(date_breaks = "10 days", date_labels = "%Y-%m-%d") 
+
+fluo_plot
 
 # Save the graphs in png
 ggsave("./GRAPHS/fluo_plot.png", plot = fluo_plot, width = 8, height = 6, dpi = 300)

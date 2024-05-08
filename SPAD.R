@@ -5,7 +5,7 @@
 ################################################################################
 
 # Load the necessary packages
-library(xml2); library(dplyr); library(tidyr); library(ggplot2);
+library(xml2); library(dplyr); library(tidyr); library(ggplot2); library(scales)
 
 # Load the dataframes
 spad_0<- readxl::read_excel("./FLUO_SPAD/SPAD.xlsx")
@@ -15,6 +15,8 @@ spad_long <- pivot_longer(spad_0,
                           cols = colnames(spad_0)[6:13],
                           names_to = "Date", 
                           values_to = "Value")
+
+spad_long$Date <- as.Date(spad_long$Date, format = "%d-%m-%Y")
 
 spad_long <- na.omit(spad_long)
 
@@ -33,8 +35,11 @@ spad_plot <- ggplot(spad_summary, aes(x = Date, y = mean_spad, group = interacti
   geom_point() +
   geom_errorbar(aes(ymin = mean_spad - sd_spad, ymax = mean_spad + sd_spad), width = 0.2) + 
   labs(x = "Date", y = "Mean spad", color = "Inoculum & Treatment", title = "Mean spad over Time with Standard Deviation") +
-  theme_bw() +
-  theme(legend.position = "bottom")
+  theme_minimal() +  
+  theme(legend.position = "bottom") +
+  scale_x_date(date_breaks = "10 days", date_labels = "%Y-%m-%d") 
+
+spad_plot
 
 
 # Save the graphs in png
