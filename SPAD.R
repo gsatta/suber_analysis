@@ -122,6 +122,7 @@ leveneTest(Value ~ inoculum:treatment, data = spad)
 # Le varianze tra i gruppi delle interazioni non sono significativamente diverse.
 # Si rispetta l'#assunzione della omoschedasticità
 
+
 ################################### ANOVA ######################################
 
 # Esegui l'analisi della varianza (ANOVA)

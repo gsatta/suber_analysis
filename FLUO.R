@@ -75,8 +75,49 @@ print(shapiro_results)
 # 
 # Shapiro-Wilk normality test
 # 
+<<<<<<< HEAD
 # data:  fluo$residuals[fluo$interaction == interactions[i]]
 # W = 0.85995, p-value = 0.0001583
+=======
+# data:  mod$residuals
+# W = 0.82293, p-value = 1.209e-12
+
+
+################################## ANOVA #######################################
+
+# Esegui l'analisi della varianza (ANOVA)
+anova_result <- aov(`Fv/Fm` ~ inoculum + treatment + inoculum:treatment, data = fluo)
+
+summary(anova_result)
+
+# Df  Sum Sq  Mean Sq F value
+# inoculum             1 0.00664 0.006644   5.773
+# treatment            1 0.00239 0.002395   2.081
+# inoculum:treatment   1 0.00075 0.000753   0.654
+# Residuals          156 0.17952 0.001151        
+# Pr(>F)  
+# inoculum           0.0174 *
+#   treatment          0.1511  
+# inoculum:treatment 0.4199  
+# Residuals                  
+# ---
+#   Signif. codes:  
+#   0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+# Non c'è divverenza significativa 
+
+
+################################# TukeyHSD #####################################
+
+# Esegui il test di Scheffé (LSD) per confronti multipli
+lsd_result <- TukeyHSD(anova_result)
+
+# Mostra i risultati del test di Scheffé (LSD)
+print(lsd_result)
+
+# Tukey multiple comparisons of means
+# 95% family-wise confidence level
+>>>>>>> 613e22c6e5aa8b399d50d0fa61af53ca24c125d8
 # 
 # 
 # $NI.T
