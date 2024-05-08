@@ -68,6 +68,9 @@ shapiro.test(mod$residuals)
 # data:  mod$residuals
 # W = 0.82293, p-value = 1.209e-12
 
+
+################################## ANOVA #######################################
+
 # Esegui l'analisi della varianza (ANOVA)
 anova_result <- aov(`Fv/Fm` ~ inoculum + treatment + inoculum:treatment, data = fluo)
 
@@ -88,6 +91,9 @@ summary(anova_result)
 #   0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 # Non c'è divverenza significativa 
+
+
+################################# TukeyHSD #####################################
 
 # Esegui il test di Scheffé (LSD) per confronti multipli
 lsd_result <- TukeyHSD(anova_result)
