@@ -44,31 +44,83 @@ spad_plot
 # Save the graphs in png
 ggsave("./GRAPHS/spad_plot.png", plot = spad_plot, width = 8, height = 6, dpi = 300)
 
+# boxplot della produzione per la varietà
+boxplot(Value ~ inoculum + treatment, data=spad, col=c("red","green","pink","yellow"))
+
+
 ################################################################################
+
+# Calcola l'interazione tra inoculum e treatment
+spad$interaction <- interaction(spad$inoculum, spad$treatment)
 
 # Convert to factor the columns inoculum and treatments
 spad$inoculum <- as.factor(spad$inoculum)
 spad$treatment <- as.factor(spad$treatment)
 
-# Fittiamo il modello
-mod <- lm(Value ~ inoculum + treatment, data = spad)
+spad$interaction <- as.factor(spad$interaction)
 
-# Visual check dei dati
-plot(mod, which = 1)
+# Trasforma la variabile di interazione in numerico assegnando un valore specifico a ciascuna categoria
+spad$interaction_numeric <- as.numeric(factor(spad$interaction, levels = unique(spad$interaction)))
 
-plot(mod, which = 2)
+# Trova tutte le possibili interazioni
+interactions <- unique(spad$interaction)
 
-# aggiungiamo colonna dei residui
-spad <- spad %>%
-  mutate(residuals = residuals(mod))
+# Inizializza un vettore per memorizzare i risultati
+shapiro_results <- vector("list", length(interactions))
 
-# Controllare la normalità dei residui: shapiro test
-shapiro.test(mod$residuals)
+# Esegui il test di normalità Shapiro-Wilk per ciascuna interazione
+for (i in 1:length(interactions)) {
+  shapiro_results[[i]] <- shapiro.test(spad$Value[spad$interaction == interactions[i]])
+}
 
-# 	Shapiro-Wilk normality test
+# Stampa i risultati
+names(shapiro_results) <- interactions
+print(shapiro_results)
+
+# $NI.T
 # 
-# data:  mod$residuals
-# W = 0.96608, p-value = 0.0005786
+# Shapiro-Wilk normality test
+# 
+# data:  spad$Value[spad$interaction == interactions[i]]
+# W = 0.98705, p-value = 0.9207
+# 
+# 
+# $NI.NT
+# 
+# Shapiro-Wilk normality test
+# 
+# data:  spad$Value[spad$interaction == interactions[i]]
+# W = 0.96284, p-value = 0.2092
+# 
+# 
+# $PC.T
+# 
+# Shapiro-Wilk normality test
+# 
+# data:  spad$Value[spad$interaction == interactions[i]]
+# W = 0.98402, p-value = 0.8333
+# 
+# 
+# $PC.NT
+# 
+# Shapiro-Wilk normality test
+# 
+# data:  spad$Value[spad$interaction == interactions[i]]
+# W = 0.86881, p-value = 0.0002664
+
+# Tutti i residui dei gruppi, tranne PC:NT hanno una distribuzione normale.
+
+# Esegui il test di Levene
+leveneTest(Value ~ inoculum:treatment, data = spad)
+
+# > leveneTest(Value ~ inoculum:treatment, data = spad)
+# Levene's Test for Homogeneity of Variance (center = median)
+#        Df F value Pr(>F)
+# group   3  0.5292 0.6629
+#       156   
+
+# Le varianze tra i gruppi delle interazioni non sono significativamente diverse.
+# Si rispetta l'#assunzione della omoschedasticità
 
 ################################### ANOVA ######################################
 
